@@ -1,0 +1,33 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+eda_plots/
+.serena/
+.ipynb_checkpoints/
+.vscode/
+.DS_Store
+.env
+.env.*
+*.sqlite3
+*.log
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+.ydata_profiling/
+# Reports
+reports/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
