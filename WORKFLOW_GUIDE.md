@@ -20,7 +20,7 @@ src/
 使用所有332个特征和固定超参数训练4个基线模型。
 
 ```bash
-python -m src.s02_model_training.train_models
+uv run src/s02_model_training/train_models.py
 ```
 
 **训练的模型**：
@@ -44,7 +44,7 @@ python -m src.s02_model_training.train_models
 搜索最佳的L1正则化强度alpha（13个候选值）。
 
 ```bash
-python -m src.s03_hyperparameter_tuning.lasso_analysis
+uv run src/s03_hyperparameter_tuning/lasso_analysis.py
 ```
 
 **输出**：
@@ -57,7 +57,7 @@ python -m src.s03_hyperparameter_tuning.lasso_analysis
 搜索最佳的树模型参数组合。
 
 ```bash
-python -m src.s03_hyperparameter_tuning.lightgbm_tuning
+uv run src/s03_hyperparameter_tuning/lightgbm_tuning.py
 ```
 
 **默认参数网格**：
@@ -254,13 +254,13 @@ best_params, best_score = tuner.get_best_params()
 
 ```bash
 # 1. 训练基线模型
-python -m src.s02_model_training.train_models
+uv run src/s02_model_training/train_models.py
 
 # 2. LASSO超参数调优
-python -m src.s03_hyperparameter_tuning.lasso_analysis
+uv run src/s03_hyperparameter_tuning/lasso_analysis.py
 
 # 3. LightGBM超参数调优（可选，耗时较长）
-python -m src.s03_hyperparameter_tuning.lightgbm_tuning
+uv run src/s03_hyperparameter_tuning/lightgbm_tuning.py
 
 # 4. 查看results/目录下的所有结果
 ls -R results/
