@@ -319,30 +319,58 @@ class LassoAnalyzer:
 
 
 if __name__ == "__main__":
-    # 测试LASSO分析器
-    np.random.seed(42)
-    X = np.random.randn(1000, 50)
-    y = X[:, 0] + X[:, 1] * 2 + np.random.randn(1000) * 0.5
+    """
+    直接运行此脚本时，使用真实数据进行LASSO超参数分析
+    """
+    from src.s01_data_analysis.data_loader import DataLoader
 
+    print("\n" + "=" * 80)
+    print("LASSO超参数分析 - 独立运行模式")
+    print("=" * 80)
+
+    # 加载真实数据
+    loader = DataLoader(
+        data_path="data/data.csv",
+        target_column="realY",
+        test_size=0.2,
+        random_state=42
+    )
+    X_insample, X_outsample, y_insample, y_outsample = loader.load_and_split()
+
+    print(f"\n使用真实数据:")
+    print(f"  样本内数据: {X_insample.shape}")
+    print(f"  特征数: {X_insample.shape[1]}")
+
+    # 创建LASSO分析器（使用完整的alpha网格）
     analyzer = LassoAnalyzer(
-        alphas=[0.001, 0.01, 0.1, 1.0],
+        alphas=None,  # 使用默认的13个alpha值
         n_folds=4,
         random_state=42
     )
 
     # 运行网格搜索
-    analyzer.run_grid_search(X, y, verbose=True)
+    analyzer.run_grid_search(X_insample, y_insample, verbose=True)
 
     # 获取IC矩阵
     ic_matrix = analyzer.create_ic_fold_matrix()
-    print("\nIC (Pearson) 矩阵:")
+    print("\n" + "=" * 80)
+    print("IC (Pearson) 矩阵 (alpha × fold):")
+    print("=" * 80)
     print(ic_matrix)
 
     # 获取稳定性指标
     stability = analyzer.compute_stability_metrics()
-    print("\n稳定性指标:")
+    print("\n" + "=" * 80)
+    print("稳定性指标:")
+    print("=" * 80)
     print(stability)
 
     # 获取最佳alpha
     best_alpha, best_score = analyzer.get_best_alpha()
-    print(f"\n最佳 alpha: {best_alpha:.2e} (IC = {best_score:.6f})")
+    print("\n" + "=" * 80)
+    print(f"最佳 alpha: {best_alpha:.2e} (IC = {best_score:.6f})")
+    print("=" * 80)
+
+    # 导出结果
+    analyzer.export_results("results/lasso_analysis")
+    print("\n分析完成！结果已保存至 results/lasso_analysis/")
