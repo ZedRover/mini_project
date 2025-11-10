@@ -19,9 +19,9 @@ if str(project_root) not in sys.path:
 import numpy as np
 import pandas as pd
 
-from src.s02_model_training.cross_validation import CrossValidator, compare_cv_results
+from src.utils.cross_validation import CrossValidator, compare_cv_results
 from src.s01_data_analysis.data_loader import DataLoader
-from src.s02_model_training.metrics import MetricsCalculator, print_metrics_summary
+from src.utils.metrics import MetricsCalculator, print_metrics_summary
 from src.s02_model_training.model_trainer import ModelFactory
 
 warnings.filterwarnings("ignore")

@@ -18,7 +18,7 @@ if str(project_root) not in sys.path:
 import numpy as np
 import pandas as pd
 
-from src.s02_model_training.cross_validation import CrossValidationResult, CrossValidator
+from src.utils.cross_validation import CrossValidationResult, CrossValidator
 from src.s02_model_training.model_trainer import ModelFactory
 
 

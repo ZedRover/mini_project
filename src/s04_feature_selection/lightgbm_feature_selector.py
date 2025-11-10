@@ -14,9 +14,9 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMRegressor
 
-from src.s02_model_training.cross_validation import CrossValidator
+from src.utils.cross_validation import CrossValidator
 from src.s01_data_analysis.data_loader import DataLoader
-from src.s02_model_training.metrics import MetricsCalculator
+from src.utils.metrics import MetricsCalculator
 
 
 class LightGBMFeatureSelector:
