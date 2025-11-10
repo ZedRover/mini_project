@@ -21,12 +21,45 @@ from src.s01_data_analysis.data_loader import DataLoader
 from src.s02_model_training.metrics import MetricsCalculator
 
 
+def load_best_alpha_from_tuning(
+    tuning_results_dir: str = "results/lasso_analysis"
+) -> float:
+    """
+    从LASSO超参数调优结果中读取最佳alpha值
+
+    Parameters
+    ----------
+    tuning_results_dir : str
+        LASSO调优结果目录
+
+    Returns
+    -------
+    float
+        最佳alpha值
+    """
+    result_dir = Path(tuning_results_dir)
+
+    # 尝试读取稳定性指标文件
+    stability_file = result_dir / "lasso_stability_metrics.csv"
+    if stability_file.exists():
+        df = pd.read_csv(stability_file)
+        # 按IC均值排序，选择最佳alpha
+        df = df.sort_values('ic_mean', ascending=False)
+        best_alpha = df.iloc[0]['alpha']
+        print(f"  从 {stability_file} 读取最佳alpha: {best_alpha}")
+        return best_alpha
+
+    # 如果没有找到文件，返回默认值
+    print(f"  警告：未找到调优结果，使用默认alpha: 0.001")
+    return 0.001
+
+
 class LassoFeatureSelector:
     """LASSO模型训练和特征筛选器"""
 
     def __init__(
         self,
-        alpha: float = 0.001,
+        alpha: float | str = "auto",
         n_folds: int = 4,
         random_state: int = 42,
         output_dir: str = "results/feature_selection/lasso"
@@ -36,8 +69,10 @@ class LassoFeatureSelector:
 
         Parameters
         ----------
-        alpha : float
-            L1正则化强度
+        alpha : float | str
+            L1正则化强度。
+            - 如果为"auto"，从超参数调优结果中自动读取最佳alpha
+            - 如果为float，使用指定的alpha值
         n_folds : int
             交叉验证折数
         random_state : int
@@ -45,7 +80,12 @@ class LassoFeatureSelector:
         output_dir : str
             输出目录
         """
-        self.alpha = alpha
+        # 处理alpha参数
+        if alpha == "auto":
+            print("\n[自动选择alpha] 从超参数调优结果中读取最佳alpha...")
+            self.alpha = load_best_alpha_from_tuning()
+        else:
+            self.alpha = alpha
         self.n_folds = n_folds
         self.random_state = random_state
         self.output_dir = Path(output_dir)

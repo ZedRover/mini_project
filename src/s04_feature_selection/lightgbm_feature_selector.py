@@ -213,6 +213,185 @@ class LightGBMFeatureSelector:
 
         return self.selected_metrics
 
+    def train_and_compare_ratios(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        ratios: List[float] = [0.6, 0.75, 0.9]
+    ) -> Dict[str, Dict]:
+        """
+        训练并对比不同特征比例的性能
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            特征矩阵
+        y : pd.Series
+            目标变量
+        ratios : List[float]
+            要测试的特征比例列表，例如 [0.6, 0.75, 0.9]
+
+        Returns
+        -------
+        Dict[str, Dict]
+            每个比例的性能指标字典
+        """
+        print("\n" + "="*80)
+        print("LightGBM多比例特征选择对比")
+        print("="*80)
+
+        self.feature_names = list(X.columns)
+
+        # 1. 基线模型（使用所有特征）
+        print(f"\n[基线] 训练全量特征模型 ({len(self.feature_names)}个特征)")
+        baseline_model = self._create_lgbm_model()
+        baseline_cv_result = self.cv.run_cv(
+            baseline_model, X, y,
+            model_name="LightGBM_全量特征",
+            verbose=False
+        )
+        self.baseline_metrics = baseline_cv_result.aggregate_metrics
+
+        print(f"  ✓ 基线模型 IC: {self.baseline_metrics['val_ic_pearson_mean']:.6f} ± {self.baseline_metrics['val_ic_pearson_std']:.6f}")
+        print(f"  ✓ 基线模型 RMSE: {self.baseline_metrics['val_rmse_mean']:.6f}")
+
+        # 2. 获取特征重要性
+        print(f"\n[特征重要性] 在全部样本内数据上训练获取特征重要性")
+        full_model = self._create_lgbm_model()
+        full_model.fit(X, y)
+
+        importance_dict = {
+            'feature': self.feature_names,
+            'importance_gain': full_model.feature_importances_,
+        }
+        self.feature_importance = pd.DataFrame(importance_dict)
+        self.feature_importance = self.feature_importance.sort_values(
+            'importance_gain', ascending=False
+        ).reset_index(drop=True)
+
+        n_important = (self.feature_importance['importance_gain'] > 0).sum()
+        print(f"  ✓ 有重要性（gain>0）的特征数: {n_important}/{len(self.feature_names)}")
+
+        # 3. 对比不同比例
+        ratio_results = {}
+        ratio_results['baseline'] = {
+            'n_features': len(self.feature_names),
+            'ratio': 1.0,
+            'metrics': self.baseline_metrics
+        }
+
+        for ratio in ratios:
+            n_features = int(len(self.feature_names) * ratio)
+            print(f"\n[比例 {ratio*100:.0f}%] 测试前 {n_features} 个特征")
+
+            # 选择特征
+            selected_features = self.feature_importance.head(n_features)['feature'].tolist()
+
+            # 训练模型
+            X_selected = X[selected_features]
+            ratio_model = self._create_lgbm_model()
+            ratio_cv_result = self.cv.run_cv(
+                ratio_model, X_selected, y,
+                model_name=f"LightGBM_{ratio*100:.0f}%特征",
+                verbose=False
+            )
+            ratio_metrics = ratio_cv_result.aggregate_metrics
+
+            # 保存结果
+            ratio_results[f"ratio_{ratio}"] = {
+                'n_features': n_features,
+                'ratio': ratio,
+                'metrics': ratio_metrics,
+                'selected_features': selected_features
+            }
+
+            # 打印结果
+            ic_mean = ratio_metrics['val_ic_pearson_mean']
+            ic_std = ratio_metrics['val_ic_pearson_std']
+            rmse_mean = ratio_metrics['val_rmse_mean']
+
+            ic_change = ic_mean - self.baseline_metrics['val_ic_pearson_mean']
+            rmse_change = rmse_mean - self.baseline_metrics['val_rmse_mean']
+
+            print(f"  ✓ IC: {ic_mean:.6f} ± {ic_std:.6f}  (变化: {ic_change:+.6f}, {ic_change/self.baseline_metrics['val_ic_pearson_mean']*100:+.2f}%)")
+            print(f"  ✓ RMSE: {rmse_mean:.6f}  (变化: {rmse_change:+.6f}, {rmse_change/self.baseline_metrics['val_rmse_mean']*100:+.2f}%)")
+
+        # 4. 生成对比总结
+        self._print_ratio_comparison_summary(ratio_results)
+
+        # 保存多比例结果
+        self.ratio_results = ratio_results
+
+        return ratio_results
+
+    def _print_ratio_comparison_summary(self, ratio_results: Dict):
+        """打印多比例对比总结"""
+        print("\n" + "="*80)
+        print("多比例特征选择对比总结")
+        print("="*80)
+
+        summary_data = []
+        for key, result in ratio_results.items():
+            summary_data.append({
+                '特征比例': f"{result['ratio']*100:.0f}%",
+                '特征数': result['n_features'],
+                'IC (均值)': f"{result['metrics']['val_ic_pearson_mean']:.6f}",
+                'IC (标准差)': f"{result['metrics']['val_ic_pearson_std']:.6f}",
+                'RMSE': f"{result['metrics']['val_rmse_mean']:.6f}"
+            })
+
+        df_summary = pd.DataFrame(summary_data)
+        print(df_summary.to_string(index=False))
+
+        # 找出最佳比例
+        best_ratio = max(
+            [(k, v) for k, v in ratio_results.items()],
+            key=lambda x: x[1]['metrics']['val_ic_pearson_mean']
+        )
+        print(f"\n最佳特征比例: {best_ratio[1]['ratio']*100:.0f}% ({best_ratio[1]['n_features']}个特征)")
+        print(f"最佳IC: {best_ratio[1]['metrics']['val_ic_pearson_mean']:.6f}")
+
+    def export_ratio_comparison_results(self):
+        """导出多比例对比结果"""
+        if not hasattr(self, 'ratio_results'):
+            print("  ⚠ 未找到多比例对比结果，请先运行 train_and_compare_ratios()")
+            return
+
+        print(f"\n{'='*80}")
+        print("导出LightGBM多比例对比结果")
+        print(f"{'='*80}")
+
+        # 1. 导出性能对比表
+        comparison_data = []
+        for key, result in self.ratio_results.items():
+            row = {
+                'ratio_name': key,
+                'ratio': result['ratio'],
+                'n_features': result['n_features'],
+            }
+            row.update(result['metrics'])
+            comparison_data.append(row)
+
+        df_comparison = pd.DataFrame(comparison_data)
+        comparison_path = self.output_dir / "lightgbm_ratio_comparison.csv"
+        df_comparison.to_csv(comparison_path, index=False)
+        print(f"  ✓ 多比例性能对比: {comparison_path}")
+
+        # 2. 导出每个比例的特征列表
+        for key, result in self.ratio_results.items():
+            if 'selected_features' in result:
+                ratio_value = result['ratio']
+                features_path = self.output_dir / f"lightgbm_features_{ratio_value*100:.0f}pct.json"
+                with open(features_path, 'w') as f:
+                    json.dump({
+                        'ratio': ratio_value,
+                        'n_features': result['n_features'],
+                        'features': result['selected_features']
+                    }, f, indent=2)
+                print(f"  ✓ {ratio_value*100:.0f}%特征列表: {features_path.name}")
+
+        print(f"\n所有结果已保存至: {self.output_dir}")
+
     def export_results(self):
         """导出结果"""
         print(f"\n{'='*80}")
