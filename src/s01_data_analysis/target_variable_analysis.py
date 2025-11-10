@@ -163,7 +163,7 @@ class TargetVariableAnalyzer:
         ax.set_xticklabels(['realY'])
         ax.grid(alpha=0.3)
 
-        # 6. 多带宽KDE对比
+        # 6. Multi-bandwidth KDE comparison
         ax = axes[1, 2]
         for bw in [0.05, 0.1, 0.2]:
             self.y.plot(kind='kde', ax=ax, bw_method=bw, label=f'bandwidth={bw}', linewidth=2)
@@ -213,7 +213,7 @@ class TargetVariableAnalyzer:
 
         fig, axes = plt.subplots(2, 3, figsize=(16, 10))
 
-        schemes = [(2, '二分类'), (3, '三分类'), (5, '五分类'), (10, '十分类')]
+        schemes = [(2, 'Binary'), (3, '3-Class'), (5, '5-Class'), (10, '10-Class')]
 
         for idx, (n_bins, title) in enumerate(schemes):
             ax = axes[idx // 3, idx % 3]
@@ -236,7 +236,7 @@ class TargetVariableAnalyzer:
                             for label in y_binned.unique()]) / len(self.y)
             info_retention = (1 - within_var / self.y.var()) * 100
 
-            ax.text(0.5, 0.95, f'信息保留: {info_retention:.1f}%',
+            ax.text(0.5, 0.95, f'Info Retention: {info_retention:.1f}%',
                    transform=ax.transAxes, ha='center', va='top',
                    bbox=dict(boxstyle='round', facecolor='yellow' if info_retention < 70 else 'lightgreen', alpha=0.5),
                    fontsize=10, fontweight='bold')
@@ -250,7 +250,7 @@ class TargetVariableAnalyzer:
         ax.hist(self.y, bins=50, color='coral', alpha=0.7, edgecolor='black')
         ax.set_xlabel('realY')
         ax.set_ylabel('Frequency')
-        ax.set_title('原始连续分布 (对比)', fontsize=11, fontweight='bold')
+        ax.set_title('Original Continuous Distribution (Reference)', fontsize=11, fontweight='bold')
         ax.grid(alpha=0.3)
 
         # 信息损失曲线
@@ -265,12 +265,12 @@ class TargetVariableAnalyzer:
             info_retention_list.append((1 - within_var / self.y.var()) * 100)
 
         ax.plot(n_bins_list, info_retention_list, marker='o', linewidth=2, markersize=8, color='darkgreen')
-        ax.set_xlabel('分类数')
-        ax.set_ylabel('信息保留率 (%)')
-        ax.set_title('离散化信息损失分析', fontsize=11, fontweight='bold')
+        ax.set_xlabel('Number of Classes')
+        ax.set_ylabel('Information Retention (%)')
+        ax.set_title('Discretization Information Loss Analysis', fontsize=11, fontweight='bold')
         ax.grid(alpha=0.3)
-        ax.axhline(y=90, color='r', linestyle='--', label='90% 阈值')
-        ax.axhline(y=70, color='orange', linestyle='--', label='70% 阈值')
+        ax.axhline(y=90, color='r', linestyle='--', label='90% Threshold')
+        ax.axhline(y=70, color='orange', linestyle='--', label='70% Threshold')
         ax.legend()
 
         plt.tight_layout()

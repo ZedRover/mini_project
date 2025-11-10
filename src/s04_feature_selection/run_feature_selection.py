@@ -428,7 +428,7 @@ class FeatureSelectionExperiment:
 
         # 创建图表
         fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-        fig.suptitle('特征筛选性能对比分析', fontsize=16, fontweight='bold')
+        fig.suptitle('Feature Selection Performance Comparison', fontsize=16, fontweight='bold')
 
         # 1. IC对比（按特征集分组）
         ax1 = axes[0, 0]

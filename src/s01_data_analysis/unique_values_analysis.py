@@ -63,9 +63,9 @@ fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 ax = axes[0, 0]
 bars = ax.bar(range(len(df_analysis)), df_analysis['出现次数'],
               color='steelblue', alpha=0.7, edgecolor='black')
-ax.set_xlabel('唯一值序号')
-ax.set_ylabel('出现次数')
-ax.set_title('20个唯一值的频次分布', fontweight='bold')
+ax.set_xlabel('Unique Value Index')
+ax.set_ylabel('Frequency')
+ax.set_title('Frequency Distribution of 20 Unique Values', fontweight='bold')
 ax.grid(axis='y', alpha=0.3)
 
 # 2. 唯一值数值分布
@@ -73,18 +73,18 @@ ax = axes[0, 1]
 ax.scatter(range(len(unique_values)), unique_values, s=100,
           c='red', marker='o', edgecolors='black', linewidths=2)
 ax.plot(range(len(unique_values)), unique_values, 'b--', alpha=0.5)
-ax.set_xlabel('序号')
-ax.set_ylabel('数值大小')
-ax.set_title('唯一值的数值分布', fontweight='bold')
+ax.set_xlabel('Index')
+ax.set_ylabel('Value')
+ax.set_title('Value Distribution of Unique Values', fontweight='bold')
 ax.grid(alpha=0.3)
 
 # 3. 间隔分布
 ax = axes[1, 0]
 ax.bar(range(len(diffs)), diffs, color='coral', alpha=0.7, edgecolor='black')
-ax.axhline(diffs.mean(), color='red', linestyle='--', linewidth=2, label=f'均值: {diffs.mean():.4f}')
-ax.set_xlabel('区间序号')
-ax.set_ylabel('间隔大小')
-ax.set_title('相邻唯一值的间隔', fontweight='bold')
+ax.axhline(diffs.mean(), color='red', linestyle='--', linewidth=2, label=f'Mean: {diffs.mean():.4f}')
+ax.set_xlabel('Interval Index')
+ax.set_ylabel('Interval Size')
+ax.set_title('Intervals Between Adjacent Unique Values', fontweight='bold')
 ax.legend()
 ax.grid(axis='y', alpha=0.3)
 
@@ -92,16 +92,16 @@ ax.grid(axis='y', alpha=0.3)
 ax = axes[1, 1]
 top_10 = df_analysis.nlargest(10, '占比(%)')
 others_pct = df_analysis.iloc[10:]['占比(%)'].sum() if len(df_analysis) > 10 else 0
-labels = [f'值{i+1}' for i in range(len(top_10))]
+labels = [f'Value {i+1}' for i in range(len(top_10))]
 if others_pct > 0:
-    labels.append('其他')
+    labels.append('Others')
     values = list(top_10['占比(%)']) + [others_pct]
 else:
     values = list(top_10['占比(%)'])
 
 colors = plt.cm.Set3(range(len(values)))
 ax.pie(values, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
-ax.set_title('占比分布（前10个唯一值）', fontweight='bold')
+ax.set_title('Distribution (Top 10 Unique Values)', fontweight='bold')
 
 plt.tight_layout()
 plt.savefig('results/target_analysis/unique_values_analysis.png', dpi=300, bbox_inches='tight')
