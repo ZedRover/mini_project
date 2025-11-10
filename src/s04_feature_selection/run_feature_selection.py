@@ -15,11 +15,11 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from data_loader import DataLoader
-from feature_selection_comparison import FeatureSelectionComparator
-from lasso_trainer import LassoFeatureSelector
-from lightgbm_trainer import LightGBMFeatureSelector
-from cross_validation import CrossValidator
+from src.s01_data_analysis.data_loader import DataLoader
+from src.s04_feature_selection.feature_selection_comparison import FeatureSelectionComparator
+from src.s04_feature_selection.lasso_feature_selector import LassoFeatureSelector
+from src.s04_feature_selection.lightgbm_feature_selector import LightGBMFeatureSelector
+from src.s02_model_training.cross_validation import CrossValidator
 
 
 class FeatureSelectionExperiment:

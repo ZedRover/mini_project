@@ -15,7 +15,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.gridspec import GridSpec
 
-from cross_validation import CrossValidationResult
+from src.s02_model_training.cross_validation import CrossValidationResult
 
 # 设置中文字体和样式
 plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS', 'SimHei']

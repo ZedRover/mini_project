@@ -12,8 +12,8 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
-from cross_validation import CrossValidationResult, CrossValidator
-from model_trainer import ModelFactory
+from src.s02_model_training.cross_validation import CrossValidationResult, CrossValidator
+from src.s02_model_training.model_trainer import ModelFactory
 
 
 class LassoAnalyzer:

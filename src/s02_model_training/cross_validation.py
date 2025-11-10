@@ -14,7 +14,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, clone
 from sklearn.model_selection import KFold
 
-from metrics import MetricsCalculator
+from src.s02_model_training.metrics import MetricsCalculator
 
 
 @dataclass

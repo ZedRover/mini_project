@@ -17,12 +17,12 @@ import pandas as pd
 # 添加src目录到路径
 sys.path.insert(0, str(Path(__file__).parent))
 
-from cross_validation import CrossValidator, compare_cv_results
-from data_loader import DataLoader
-from lasso_analysis import LassoAnalyzer
-from metrics import MetricsCalculator, print_metrics_summary
-from model_trainer import ModelFactory
-from visualization import Visualizer
+from src.s02_model_training.cross_validation import CrossValidator, compare_cv_results
+from src.s01_data_analysis.data_loader import DataLoader
+from src.s03_hyperparameter_tuning.lasso_analysis import LassoAnalyzer
+from src.s02_model_training.metrics import MetricsCalculator, print_metrics_summary
+from src.s02_model_training.model_trainer import ModelFactory
+from src.s03_hyperparameter_tuning.visualization import Visualizer
 
 warnings.filterwarnings("ignore")
 
