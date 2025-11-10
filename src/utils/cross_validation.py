@@ -6,8 +6,15 @@
 
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Dict, List
+
+# 添加项目根目录到Python路径，支持 uv run 和 python -m 两种运行方式
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 import numpy as np
 import pandas as pd
