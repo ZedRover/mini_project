@@ -126,10 +126,6 @@ class BaselineModelTrainer:
                 n_estimators=500,
                 learning_rate=0.05,
                 num_leaves=31
-            ),
-            "NeuralNetwork": self.model_factory.get_neural_network(
-                hidden_layer_sizes=(100, 50),
-                max_iter=500
             )
         }
 

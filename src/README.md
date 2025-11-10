@@ -42,7 +42,6 @@
      - Ridge
      - LASSO (使用固定alpha)
      - LightGBM
-     - NeuralNetwork
    - 4-fold交叉验证
    - 记录IC、RMSE等指标
 

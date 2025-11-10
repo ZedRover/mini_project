@@ -17,7 +17,7 @@ src/
 
 ### 步骤1: 基线模型训练（全量特征）
 
-使用所有332个特征和固定超参数训练5个基线模型。
+使用所有332个特征和固定超参数训练4个基线模型。
 
 ```bash
 python -m src.s02_model_training.train_models
@@ -28,7 +28,6 @@ python -m src.s02_model_training.train_models
 - Ridge (alpha=1.0)
 - Lasso (alpha=0.01)
 - LightGBM (n_estimators=500, learning_rate=0.05, num_leaves=31)
-- NeuralNetwork (hidden_layers=(100,50))
 
 **输出**：
 - `results/baseline_models/cv_results_all_folds.csv` - 所有fold的详细结果
@@ -173,10 +172,9 @@ ratio_results = selector.train_and_compare_ratios(X, y, ratios=ratios)
 | 模型 | IC (Pearson) | RMSE |
 |------|-------------|------|
 | LightGBM | 0.556 ± 0.019 | 0.438 |
-| Lasso | 0.254 ± 0.021 | 0.506 |
 | Ridge | 0.292 ± 0.020 | 0.497 |
 | LinearRegression | 0.292 ± 0.020 | 0.497 |
-| NeuralNetwork | ~0.25 | ~0.51 |
+| Lasso | 0.254 ± 0.021 | 0.506 |
 
 ### LASSO特征选择效果（参考）
 
