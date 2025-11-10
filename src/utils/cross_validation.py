@@ -19,7 +19,7 @@ if str(project_root) not in sys.path:
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, clone
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, TimeSeriesSplit
 
 from src.utils.metrics import MetricsCalculator
 
@@ -51,6 +51,7 @@ class CrossValidator:
         n_folds: int = 4,
         random_state: int = 42,
         shuffle: bool = True,
+        use_time_series_split: bool = True,
         metrics_calculator: MetricsCalculator | None = None
     ):
         """
@@ -61,20 +62,33 @@ class CrossValidator:
         n_folds : int
             折数，默认为4
         random_state : int
-            随机种子
+            随机种子（仅当use_time_series_split=False时使用）
         shuffle : bool
-            是否在划分前打乱数据
+            是否在划分前打乱数据（仅当use_time_series_split=False时使用）
+        use_time_series_split : bool
+            是否使用时序交叉验证。True=使用TimeSeriesSplit（防止数据泄露），
+            False=使用KFold（可能导致时序数据泄露）
         metrics_calculator : MetricsCalculator, optional
             指标计算器，如果为None则创建默认的
         """
         self.n_folds = n_folds
         self.random_state = random_state
         self.shuffle = shuffle
-        self.kfold = KFold(
-            n_splits=n_folds,
-            shuffle=shuffle,
-            random_state=random_state
-        )
+        self.use_time_series_split = use_time_series_split
+
+        if use_time_series_split:
+            # 使用时序交叉验证（不shuffle，保持时序）
+            self.splitter = TimeSeriesSplit(n_splits=n_folds)
+            self.kfold = None  # 保持向后兼容
+        else:
+            # 使用标准KFold（可能导致时序数据泄露）
+            self.kfold = KFold(
+                n_splits=n_folds,
+                shuffle=shuffle,
+                random_state=random_state
+            )
+            self.splitter = self.kfold
+
         self.metrics_calculator = metrics_calculator or MetricsCalculator()
 
     def run_cv(
@@ -122,7 +136,7 @@ class CrossValidator:
 
         fold_results = []
 
-        for fold_idx, (train_idx, val_idx) in enumerate(self.kfold.split(X), 1):
+        for fold_idx, (train_idx, val_idx) in enumerate(self.splitter.split(X), 1):
             if verbose:
                 print(f"\n[Fold {fold_idx}/{self.n_folds}]")
 

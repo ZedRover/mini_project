@@ -22,7 +22,8 @@ class DataLoader:
         data_path: str | Path = "data/data.csv",
         target_column: str = "realY",
         test_size: float = 0.2,
-        random_state: int = 42
+        random_state: int = 42,
+        use_time_series_split: bool = True
     ):
         """
         初始化数据加载器
@@ -36,12 +37,16 @@ class DataLoader:
         test_size : float
             样本外数据比例（用于最终测试）
         random_state : int
-            随机种子，保证可重现性
+            随机种子，保证可重现性（仅当use_time_series_split=False时使用）
+        use_time_series_split : bool
+            是否使用时序划分。True=按顺序划分（前80%训练，后20%测试），
+            False=随机划分（可能导致数据泄露）
         """
         self.data_path = Path(data_path)
         self.target_column = target_column
         self.test_size = test_size
         self.random_state = random_state
+        self.use_time_series_split = use_time_series_split
 
         # 存储加载的数据
         self.df: pd.DataFrame | None = None
@@ -95,12 +100,27 @@ class DataLoader:
 
         # 4. 划分样本内外数据
         print(f"\n[3/3] 划分样本内外数据 (样本外比例: {self.test_size:.1%})")
-        self.X_insample, self.X_outsample, self.y_insample, self.y_outsample = train_test_split(
-            X, y,
-            test_size=self.test_size,
-            random_state=self.random_state,
-            shuffle=True
-        )
+
+        if self.use_time_series_split:
+            # 时序划分：按顺序划分，前(1-test_size)作为训练，后test_size作为测试
+            split_idx = int(len(X) * (1 - self.test_size))
+            self.X_insample = X.iloc[:split_idx].copy()
+            self.X_outsample = X.iloc[split_idx:].copy()
+            self.y_insample = y.iloc[:split_idx].copy()
+            self.y_outsample = y.iloc[split_idx:].copy()
+
+            print(f"  ✓ 使用时序划分（防止数据泄露）")
+            print(f"  ✓ 样本内数据索引范围: [{self.X_insample.index.min()}, {self.X_insample.index.max()}]")
+            print(f"  ✓ 样本外数据索引范围: [{self.X_outsample.index.min()}, {self.X_outsample.index.max()}]")
+        else:
+            # 随机划分（可能导致时序数据泄露）
+            self.X_insample, self.X_outsample, self.y_insample, self.y_outsample = train_test_split(
+                X, y,
+                test_size=self.test_size,
+                random_state=self.random_state,
+                shuffle=True
+            )
+            print(f"  ⚠ 使用随机划分（如果数据有时序性，可能导致数据泄露！）")
 
         print(f"  ✓ 样本内数据: {self.X_insample.shape[0]:,} 样本")
         print(f"  ✓ 样本外数据: {self.X_outsample.shape[0]:,} 样本")
