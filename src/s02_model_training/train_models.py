@@ -76,6 +76,7 @@ class BaselineModelTrainer:
         self.y_insample = None
         self.y_outsample = None
         self.cv_results = []
+        self.baseline_models = None  # 存储基线模型配置
 
     def run(self):
         """运行完整的基线模型训练流程"""
@@ -123,7 +124,7 @@ class BaselineModelTrainer:
         print("=" * 80)
 
         # 定义基线模型配置
-        baseline_models = {
+        self.baseline_models = {
             "LinearRegression": self.model_factory.get_linear_regression(),
             "Ridge": self.model_factory.get_ridge(alpha=1.0),
             "Lasso": self.model_factory.get_lasso(alpha=0.01),  # 固定alpha
@@ -134,16 +135,16 @@ class BaselineModelTrainer:
             )
         }
 
-        print(f"\n将训练 {len(baseline_models)} 个基线模型:")
-        for model_name in baseline_models.keys():
+        print(f"\n将训练 {len(self.baseline_models)} 个基线模型:")
+        for model_name in self.baseline_models.keys():
             print(f"  - {model_name}")
         print(f"\n使用 {self.n_folds}-fold 交叉验证")
 
         # 训练每个模型
         self.cv_results = []
-        for idx, (model_name, model) in enumerate(baseline_models.items(), 1):
+        for idx, (model_name, model) in enumerate(self.baseline_models.items(), 1):
             print("\n" + "-" * 80)
-            print(f"[{idx}/{len(baseline_models)}] 训练模型: {model_name}")
+            print(f"[{idx}/{len(self.baseline_models)}] 训练模型: {model_name}")
             print("-" * 80)
 
             # 运行交叉验证
@@ -183,8 +184,11 @@ class BaselineModelTrainer:
             model_name = cv_result.model_name
             print(f"\n评估模型: {model_name}")
 
-            # 重新训练模型使用全部样本内数据
-            model = cv_result.model
+            # 从baseline_models中获取对应的模型并克隆
+            from sklearn.base import clone
+            model = clone(self.baseline_models[model_name])
+
+            # 在全部样本内数据上训练
             model.fit(self.X_insample, self.y_insample)
 
             # 在样本外数据上预测
